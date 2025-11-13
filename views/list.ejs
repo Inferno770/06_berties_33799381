@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head>
+    <title><%= shopData.shopName %></title>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
+  </head>
+  <body>
+    <h1>Here are the books that we sell:</h1>
+
+    <% if (availableBooks.length > 0) { %>
+
+      <ul>
+        <% availableBooks.forEach(function(book) { %>
+          <li>
+            <%= book.name %>, £<%= book.price ? parseFloat(book.price).toFixed(2) : 'Price unavailable' %>
+          </li>
+        <% }); %>
+      </ul>
+
+    <% } else { %>
+
+      <p>No books found.</p>
+
+    <% } %>
+
+  </body>
+</html>

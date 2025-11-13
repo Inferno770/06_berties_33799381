@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <title><%= shopData.shopName %> - Add Book</title>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+  </head>
+  <body>
+    <h1>Bertie's Books: Add book</h1>
+
+    <form method="POST" action="/books/bookadded">
+      <div>
+        <label for="name_input">Book name:</label>
+        <input type="text" id="name_input" name="name" />
+      </div>
+      <br>
+      <div>
+        <label for="price_input">Price:</label>
+        <input type="text" id="price_input" name="price" />
+      </div>
+      <br>
+      <div>
+        <input type="submit" value="Add Book" />
+      </div>
+    </form>
+  </body>
+</html>

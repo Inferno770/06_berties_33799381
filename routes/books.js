@@ -7,8 +7,26 @@ router.get('/search',function(req, res, next){
 });
 
 router.get('/search-result', function (req, res, next) {
-    //searching in the database
-    res.send("You searched for: " + req.query.keyword)
+    //get the keyword from the form's <input name="search_text">
+    const keyword = req.query.search_text;
+    
+    //create the SQL query with the LIKE operator for partial matching
+    let sqlquery = "SELECT * FROM books WHERE name LIKE ?";
+    
+    //create the search term for the 'LIKE' query. 
+    //the '%' is a wildcard, so '%World%' finds any text containing "World".
+    const searchTerm = '%' + keyword + '%';
+
+    //this executes the query
+    db.query(sqlquery, [searchTerm], (err, result) => {
+        if (err) {
+            return next(err);
+        }
+        
+        //render the same list.ejs template, passing in our
+        //search results. so it will be nicely formatted.
+        res.render("list.ejs", { availableBooks: result });
+    });
 });
 
 router.get('/list', function(req, res, next) {
@@ -18,7 +36,43 @@ router.get('/list', function(req, res, next) {
         if (err) {
             next(err)
         }
-        res.send(result)
+        res.render("list.ejs", {availableBooks:result})
+    });
+});
+
+router.get('/bargainbooks', function(req, res, next) {
+    //new SQL query to get books priced less than 20
+    let sqlquery = "SELECT * FROM books WHERE price < 20"; 
+    
+    //execute sql query
+    db.query(sqlquery, (err, result) => {
+        if (err) {
+            return next(err); // Handle errors
+        }
+        
+        //we re-use the 'list.ejs' template
+        res.render("list.ejs", {availableBooks: result});
+    });
+});
+
+router.get('/addbook', function(req, res, next) {
+    res.render("addbook.ejs");
+});
+
+router.post('/bookadded', function (req, res, next) {
+    //saving data in database
+    let sqlquery = "INSERT INTO books (name, price) VALUES (?,?)";
+    
+    //get data from the form's <input> fields
+    let newrecord = [req.body.name, req.body.price];
+    
+    //execute sql query
+    db.query(sqlquery, newrecord, (err, result) => {
+        if (err) {
+            return next(err);
+        }
+        //send this message back to the browser
+        res.send('This book is added to database, name: ' + req.body.name + ', price ' + req.body.price);
     });
 });
 
