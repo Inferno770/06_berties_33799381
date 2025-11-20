@@ -37,12 +37,80 @@ router.post('/registered', function (req, res, next) {
             }
             //sends success message
             result = 'Hello '+ req.body.first + ' '+ req.body.last +' you are now registered!  We will send an email to you at ' + req.body.email
-            result += 'Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword
+            result += ' Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword
             res.send(result)
 
         })
     })
 })
+
+router.get('/list', function(req, res, next) {
+    let sqlquery = "SELECT * FROM users"; // query database to get all the users
+    
+    //executes sql query
+    db.query(sqlquery, (err, result) => {
+        if (err) {
+            next(err);
+        }
+        //renders the userlist.ejs template and pass the result
+        res.render("userlist.ejs", { availableUsers: result });
+    });
+});
+
+router.get('/login', function (req, res, next) {
+    res.render('login.ejs')
+})
+
+router.post('/loggedin', function (req, res, next) {
+    let sqlquery = "SELECT hashedPassword FROM users WHERE username = ?"
+    
+    db.query(sqlquery, [req.body.username], (err, result) => {
+        if (err) { return next(err) }
+
+        // --- SCENARIO 1: USER NOT FOUND ---
+        if (result.length === 0) {
+            // Log the failure
+            let auditQuery = "INSERT INTO audit_log (username, action) VALUES (?, ?)";
+            db.query(auditQuery, [req.body.username, "Failed - User not found"]);
+
+            return res.send('Login failed: Username not found.')
+        }
+
+        let hashedPassword = result[0].hashedPassword
+
+        bcrypt.compare(req.body.password, hashedPassword, function(err, match) {
+            if (err) { return next(err) }
+            
+            // --- SCENARIO 2: LOGIN SUCCESSFUL ---
+            if (match == true) {
+                // Log the success
+                let auditQuery = "INSERT INTO audit_log (username, action) VALUES (?, ?)";
+                db.query(auditQuery, [req.body.username, "Successful Login"]);
+
+                res.send('Login successful! Hello ' + req.body.username)
+            } 
+            // --- SCENARIO 3: WRONG PASSWORD ---
+            else {
+                // Log the failure
+                let auditQuery = "INSERT INTO audit_log (username, action) VALUES (?, ?)";
+                db.query(auditQuery, [req.body.username, "Failed - Wrong Password"]);
+
+                res.send('Login failed: Incorrect password.')
+            }
+        })
+    })
+})
+
+router.get('/audit', function(req, res, next) {
+    // Select all logs, newest first
+    let sqlquery = "SELECT * FROM audit_log ORDER BY timestamp DESC";
+    
+    db.query(sqlquery, (err, result) => {
+        if (err) { return next(err) }
+        
+        res.render("audit.ejs", { auditData: result });
+    });
+});
 
 // Export the router object so index.js can access it
 module.exports = router
