@@ -20,6 +20,8 @@ app.set('view engine', 'ejs')
 // Set up the body parser 
 app.use(express.urlencoded({ extended: true }))
 
+app.use(expressSanitizer());
+
 // Set up public folder (for css and static js)
 app.use(express.static(path.join(__dirname, 'public')))
 
