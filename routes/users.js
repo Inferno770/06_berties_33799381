@@ -2,6 +2,7 @@
 const express = require("express")
 const router = express.Router()
 const bcrypt = require('bcrypt')
+const { check, validationResult } = require('express-validator');
 
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId ) {
@@ -11,57 +12,74 @@ const redirectLogin = (req, res, next) => {
     } 
 }
 
-
 router.get('/register', function (req, res, next) {
     res.render('register.ejs')
 })
 
-router.post('/registered', function (req, res, next) {
-    //get the plain password from the form
-    const plainPassword = req.body.password
-    const saltRounds = 10
+router.post('/registered', [
+    // 1. Validation Rules
+    check('email').isEmail(),
+    check('username').isLength({ min: 5, max: 20 }),
+    check('password').isLength({ min: 8 }),
+    check('first').notEmpty(),
+    check('last').notEmpty()
 
-    //hash the password using bcrypt
-    bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
-        if (err) {
-            return next(err)
-        }
+], function (req, res, next) {
 
-        //prepare the SQL query 
-        let sqlquery = "INSERT INTO users (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)"
-        
-        //organize the data to insert
-        let newrecord = [
-            req.body.username, 
-            req.body.first, 
-            req.body.last, 
-            req.body.email, 
-            hashedPassword
-        ]
+    // 2. Check for validation errors
+    const errors = validationResult(req);
 
-        //execute the query
-        db.query(sqlquery, newrecord, (err, result) => {
+    if (!errors.isEmpty()) {
+        // If errors exist (e.g. bad email), redirect back to register page
+        res.redirect('./register'); 
+    } 
+    else { 
+        // 3. No errors? Proceed with the original Registration logic
+        const plainPassword = req.body.password
+        const saltRounds = 10
+
+        // hash the password using bcrypt
+        bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
             if (err) {
                 return next(err)
             }
-            //sends success message
-            result = 'Hello '+ req.body.first + ' '+ req.body.last +' you are now registered!  We will send an email to you at ' + req.body.email
-            result += ' Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword
-            res.send(result)
 
+            // prepare the SQL query 
+            let sqlquery = "INSERT INTO users (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)"
+            
+            // organize the data to insert
+            let newrecord = [
+                req.sanitize(req.body.username), // Clean the username
+                req.sanitize(req.body.first),    // Clean the first name
+                req.sanitize(req.body.last),     // Clean the last name
+                req.sanitize(req.body.email), 
+                hashedPassword
+            ]
+
+            // execute the query
+            db.query(sqlquery, newrecord, (err, result) => {
+                if (err) {
+                    return next(err)
+                }
+                // sends success message
+                let msg = 'Hello '+ req.sanitize(req.body.first) + ' '+ req.sanitize(req.body.last) +' you are now registered! We will send an email to you at ' + req.sanitize(req.body.email)
+                msg += ' Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword
+                res.send(msg)
+            })
         })
-    })
+    }
 })
+
 
 router.get('/list', redirectLogin, function(req, res, next) {
     let sqlquery = "SELECT * FROM users"; // query database to get all the users
     
-    //executes sql query
+    // executes sql query
     db.query(sqlquery, (err, result) => {
         if (err) {
             next(err);
         }
-        //renders the userlist.ejs template and pass the result
+        // renders the userlist.ejs template and pass the result
         res.render("userlist.ejs", { availableUsers: result });
     });
 });
@@ -72,8 +90,9 @@ router.get('/login', function (req, res, next) {
 
 router.post('/loggedin', function (req, res, next) {
     let sqlquery = "SELECT hashedPassword FROM users WHERE username = ?"
+    let cleanUsername = req.sanitize(req.body.username);
     
-    db.query(sqlquery, [req.body.username], (err, result) => {
+    db.query(sqlquery, [cleanUsername], (err, result) => {
         if (err) { return next(err) }
 
         // --- SCENARIO 1: USER NOT FOUND ---

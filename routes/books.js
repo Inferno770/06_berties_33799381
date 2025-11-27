@@ -16,7 +16,7 @@ router.get('/search',function(req, res, next){
 
 router.get('/search-result', function (req, res, next) {
     //get the keyword from the form's <input name="search_text">
-    const keyword = req.query.search_text;
+    const keyword = req.sanitize(req.query.search_text);
     
     //create the SQL query with the LIKE operator for partial matching
     let sqlquery = "SELECT * FROM books WHERE name LIKE ?";
@@ -72,7 +72,10 @@ router.post('/bookadded', redirectLogin, function (req, res, next) {
     let sqlquery = "INSERT INTO books (name, price) VALUES (?,?)";
     
     //get data from the form's <input> fields
-    let newrecord = [req.body.name, req.body.price];
+    let newrecord = [
+        req.sanitize(req.body.name), 
+        req.body.price
+    ];
     
     //execute sql query
     db.query(sqlquery, newrecord, (err, result) => {

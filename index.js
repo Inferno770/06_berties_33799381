@@ -4,9 +4,11 @@ require('dotenv').config();
 var express = require ('express')
 var ejs = require('ejs')
 var session = require ('express-session')
+const expressSanitizer = require('express-sanitizer');
 const path = require('path')
 
 var mysql = require('mysql2');
+
 
 // Create the express application object
 const app = express()
