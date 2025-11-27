@@ -26,3 +26,18 @@ To track security events, I implemented an audit logging system:
 - **Database:** Created an `audit_log` table to store the username, action (e.g., "Successful Login", "Failed - Wrong Password"), and a timestamp.
 - **Logic:** The `/users/loggedin` route automatically inserts a record into this table for every login attempt, whether successful or failed.
 - **View:** A protected route `/users/audit` displays the full history of login activity.
+
+## Access Control
+
+I have implemented a middleware function `redirectLogin` to restrict access to sensitive areas of the application. If a user is not logged in, they are redirected to the login page.
+
+**Restricted Pages (Logged-in users only):**
+* **List Books (`/books/list`):** Restricted so that book inventory is not public.
+* **Add Books (`/books/addbook`):** Restricted to prevent unauthorised users from modifying the database inventory.
+* **List Users (`/users/list`):** Restricted to protect the privacy of registered users.
+* **Audit Log (`/users/audit`):** Restricted because it contains sensitive security information about login attempts.
+
+**Public Pages (Open to everyone):**
+* **Home, About:** General information pages.
+* **Register/Login:** Required entry points for new and existing users.
+* **Search:** Allows potential customers to find books without needing an account.

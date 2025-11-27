@@ -3,6 +3,15 @@ const express = require("express")
 const router = express.Router()
 const bcrypt = require('bcrypt')
 
+const redirectLogin = (req, res, next) => {
+    if (!req.session.userId ) {
+      res.redirect('./login') // redirect to the login page
+    } else { 
+        next (); // move to the next middleware function
+    } 
+}
+
+
 router.get('/register', function (req, res, next) {
     res.render('register.ejs')
 })
@@ -44,7 +53,7 @@ router.post('/registered', function (req, res, next) {
     })
 })
 
-router.get('/list', function(req, res, next) {
+router.get('/list', redirectLogin, function(req, res, next) {
     let sqlquery = "SELECT * FROM users"; // query database to get all the users
     
     //executes sql query
@@ -87,6 +96,9 @@ router.post('/loggedin', function (req, res, next) {
                 let auditQuery = "INSERT INTO audit_log (username, action) VALUES (?, ?)";
                 db.query(auditQuery, [req.body.username, "Successful Login"]);
 
+                // Save user session here, when login is successful
+                req.session.userId = req.body.username;
+
                 res.send('Login successful! Hello ' + req.body.username)
             } 
             // --- SCENARIO 3: WRONG PASSWORD ---
@@ -94,14 +106,13 @@ router.post('/loggedin', function (req, res, next) {
                 // Log the failure
                 let auditQuery = "INSERT INTO audit_log (username, action) VALUES (?, ?)";
                 db.query(auditQuery, [req.body.username, "Failed - Wrong Password"]);
-
                 res.send('Login failed: Incorrect password.')
             }
         })
     })
 })
 
-router.get('/audit', function(req, res, next) {
+router.get('/audit', redirectLogin, function(req, res, next) {
     // Select all logs, newest first
     let sqlquery = "SELECT * FROM audit_log ORDER BY timestamp DESC";
     
