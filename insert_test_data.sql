@@ -2,7 +2,10 @@
 
 USE berties_books;
 
-INSERT INTO books (name, price)VALUES('Brighton Rock', 20.25),('Brave New World', 25.00), ('Animal Farm', 12.99) ;
+INSERT INTO books (name, price) VALUES
+('Brighton Rock', 20.25),
+('Brave New World', 25.00), 
+('Animal Farm', 12.99);
 
 INSERT INTO users (username, first_name, last_name, email, hashedPassword)
-VALUES ('gold', 'Goldie', 'Smith', 'gold@example.com', '$2a$12$oD1P4jfYf2g/XI4VXH69PeD/cwliEZEth8FTuzVY5dh8MIZoRkHfq');
+VALUES ('gold', 'Goldie', 'Smith', 'gold@example.com', '$2b$10$ySyNN9rERMDFRne.owmWleroI0fqkBT1tCQd43Tomzxc/9dbWr.TG');
