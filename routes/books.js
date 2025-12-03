@@ -37,9 +37,9 @@ router.get('/search-result', function (req, res, next) {
     });
 });
 
-router.get('/list', redirectLogin, function(req, res, next) {
-    let sqlquery = "SELECT * FROM books"; // query database to get all the books
-    // execute sql query
+router.get('/list', function(req, res, next) {
+    let sqlquery = "SELECT * FROM books"; 
+    
     db.query(sqlquery, (err, result) => {
         if (err) {
             next(err)
