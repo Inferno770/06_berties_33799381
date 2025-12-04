@@ -5,6 +5,7 @@ var express = require ('express')
 var ejs = require('ejs')
 var session = require ('express-session')
 const expressSanitizer = require('express-sanitizer');
+const apiRoutes = require('./routes/api');
 const path = require('path')
 
 var mysql = require('mysql2');
@@ -63,6 +64,8 @@ app.use('/users', usersRoutes)
 // Load the route handlers for /books
 const booksRoutes = require('./routes/books')
 app.use('/books', booksRoutes)
+
+app.use('/api', apiRoutes);
 
 // Start the web app listening
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))

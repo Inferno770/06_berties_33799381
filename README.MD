@@ -69,3 +69,24 @@ To prevent Cross-Site Scripting (XSS) attacks, I implemented the `express-saniti
 
 **Where Sanitization is NOT Applied:**
 * **Passwords:** I did **not** sanitize the password fields. Sanitizing passwords alters special characters (e.g., changing `<` to `&lt;`), which would cause the hash verification to fail and prevent legitimate users from logging in. Passwords are never displayed in HTML, so they do not pose an XSS risk.
+
+## API Documentation
+
+This application provides a RESTful API to allow external applications to retrieve book data in JSON format.
+
+### Get Books
+**Endpoint:** `/books`
+**Method:** `GET`
+**Description:** Retrieves a list of books from the database. Supports filtering and sorting via query parameters.
+
+#### Query Parameters (Optional)
+| Parameter | Type | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `search` | String | Filters books containing this text in their name. | `?search=world` |
+| `minprice` | Number | Returns books priced equal to or above this value. | `?minprice=10` |
+| `max_price` | Number | Returns books priced equal to or below this value. | `?max_price=20` |
+| `sort` | String | Sorts the results. Accepted values: `name`, `price`. | `?sort=price` |
+
+#### Usage Examples
+
+**1. List all books:**
